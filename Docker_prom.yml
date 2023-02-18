@@ -1,0 +1,197 @@
+- name: Statistics CPU Memory Disk Utilization
+  hosts: localhost
+  become: yes
+  gather_facts: yes
+  vars:
+    host_list: "{{ groups['all'] }}"
+  tasks:
+    - name: Creates testnet directory
+      file:
+        path: /home/ansible/prometheus
+        state: directory
+        owner: ansible
+        group: wheel
+        mode: 0775
+
+    - name: Private key creation
+      openssl_privatekey:
+        path: /home/ansible/prometheus/node_exporter.key
+        size: 2048
+        owner: ansible
+        group: wheel
+        mode: 0774
+
+    - name: csr file creation
+      openssl_csr:
+        path: /home/ansible/prometheus/node_exporter.csr
+        privatekey_path: /home/ansible/prometheus/node_exporter.key
+        owner: ansible
+        group: wheel
+        mode: 0774
+
+    - name: Create SSL certificate for Node Exporter
+      openssl_certificate:
+        path: /home/ansible/prometheus/node_exporter.crt
+        privatekey_path: /home/ansible/prometheus/node_exporter.key
+        csr_path: /home/ansible/prometheus/node_exporter.csr
+        provider: selfsigned
+        owner: ansible
+        group: wheel
+        mode: 0774
+
+
+- name: Copy keys and certs
+  hosts: My
+  become: yes
+  gather_facts: no
+  tasks:
+
+    - name: Creates testnet directory
+      file:
+        path: /home/ansible/prometheus
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: 0775
+
+    - name: copy cert file
+      template:
+        src: /home/ansible/prometheus/node_exporter.crt
+        dest: /home/ansible/prometheus/node_exporter.crt
+
+    - name: copy key file
+      template:
+        src: /home/ansible/prometheus/node_exporter.key
+        dest: /home/ansible/prometheus/
+
+    - name: config file
+      template:
+        src: /home/ansible/Monitoring/exporter_tls/web.yml
+        dest: /home/ansible/prometheus/web.yml
+
+
+- name: Continue
+  hosts: My1
+  become: yes
+  vars:
+    userId: exporter
+    groupId: exporter
+    version: 2.41.0
+    docker_net: 'grafana_prometheus'
+  gather_facts: yes
+  tasks:
+
+    - name: config file
+      template:
+        src: prometheus.conf.j2
+        dest: /home/ansible/prometheus/prometheus.yml
+
+    - name: config file
+      template:
+        src: /home/ansible/Monitoring/exporter_tls/web_prom.yml
+        dest: /home/ansible/prometheus/web_prom.yml
+
+#    - name: config file
+#      copy:
+#        directory_mode: true
+#        src: /home/ansible/Monitoring/exporter_tls/datasources/
+#        dest: /home/ansible/prometheus/
+
+#    - name: config file
+#      template:
+#        src: /home/ansible/Monitoring/exporter_tls/alertmanager.yml
+#        dest: /home/ansible/prometheus/
+
+#    - name: config file
+#      copy:
+#        src: /home/ansible/Monitoring/exporter_tls/rules
+#        dest: /home/ansible/prometheus/
+
+    - name: Run prometheus updated docker image
+      docker_container:
+        pull: yes
+        name: Prometheus
+        image: prom/prometheus:latest
+        #published_ports: 9090:9090
+        network_mode: host
+        state: started
+        volumes: 
+          - /home/ansible/prometheus/:/etc/prometheus/
+          - prometheus-data:/prometheus
+        command:  
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--web.config.file=/etc/prometheus/web_prom.yml'
+          #networks:
+          #- name: "{{ docker_net }}"
+          #  aliases: prometheus
+          #  links: grafana
+        restart: yes
+        
+#    - name: Run prometheus alert-manager docker image
+#      docker_container:
+#        pull: yes
+#        name: Prometheus
+#        image: prom/alertmanager:latest
+#        published_ports: 9093:9093
+#        #network_mode: host
+#        state: started
+#        volumes:
+#          - /home/ansible/prometheus/:/etc/alertmanager/
+#          - "./alertmanager:/config"
+#          - alertmanager-data:/data
+#        command:
+#          - '--web.config.file=/etc/prometheus/web_prom.yml'
+#          - '--config.file=/etc/alertmanager/alertmanager.yml'
+#          #networks:
+#          #- name: "{{ docker_net }}"
+#          #  aliases: prometheus
+#          #  links: grafana
+#          #restart: yes
+
+
+    - name: Run grafana updated docker image
+      docker_container:
+        pull: yes
+        name: Grafana
+        image: grafana/grafana-oss:latest
+        published_ports: 3000:3000
+        state: started
+        volumes: 
+          - grafana-data:/var/lib/grafana
+        #  - /home/ansible/prometheus/datasources/:/etc/grafana/provisioning/datasources/
+        #networks:
+        # - name: "{{ docker_net }}"
+        #   aliases: grafana
+        #   links: prometheus
+        restart: yes
+
+- name: Start node_exporter
+  hosts: My
+  become: yes
+  vars:
+    userId: exporter
+    groupId: exporter
+    version: 2.41.0
+    docker_net: 'grafana_prometheus'
+  gather_facts: no
+  tasks:
+
+    - name: Run node exporter updated docker image
+      docker_container:
+        pull: yes
+        name: Exporter
+        image: prom/node-exporter
+        published_ports: 9100:9100
+        state: started
+        restart: yes
+        volumes:
+          - /home/ansible/prometheus/:/etc/node_exporter
+        command: "--web.config.file=/etc/node_exporter/web.yml"
+
+        #        networks:
+        # - name: "{{ docker_net }}"
+        #    aliases: Exporter
+        #   links: prometheus
+
+
+

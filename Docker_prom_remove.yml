@@ -1,0 +1,86 @@
+- name: Continue
+  hosts: My1
+  become: yes
+  vars:
+    userId: exporter
+    groupId: exporter
+    version: 2.41.0
+    docker_net: 'grafana_prometheus'
+  gather_facts: yes
+  tasks:
+
+#    - name: config file
+#      template:
+#        src: prometheus.conf.j2
+#        dest: /home/ansible/prometheus/prometheus.yml
+
+    - name: Run prometheus updated docker image
+      docker_container:
+        name: Prometheus
+        image: prom/prometheus:latest
+        #published_ports: 9090:9090
+        network_mode: host
+        state: absent
+        keep_volumes: no
+        volumes: 
+          - /home/ansible/prometheus/:/etc/prometheus/
+          - prometheus-data:/prometheus
+        env:
+          ADMIN_USER: nimda
+          ADMIN_PASSWORD: X$u6c6r!OkmR992T
+        command:  
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--web.config.file=/etc/prometheus/web_prom.yml'
+        
+#    - name: Run prometheus alert-manager docker image
+#      docker_container:
+#        pull: yes
+#        name: Prometheus
+#        image: prom/alertmanager:latest
+#        published_ports: 9093:9093
+#        #network_mode: host
+#        state: started
+#        volumes:
+#          - /home/ansible/prometheus/:/etc/alertmanager/
+#          - "./alertmanager:/config"
+#          - alertmanager-data:/data
+#        command:
+#          - '--web.config.file=/etc/prometheus/web_prom.yml'
+#          - '--config.file=/etc/alertmanager/alertmanager.yml'
+#          #networks:
+#          #- name: "{{ docker_net }}"
+#          #  aliases: prometheus
+#          #  links: grafana
+#          #restart: yes
+
+
+    - name: Run grafana updated docker image
+      docker_container:
+        name: Grafana
+        image: grafana/grafana-oss:latest
+        published_ports: 3000:3000
+        state: absent
+        keep_volumes: no
+        volumes: 
+          - grafana-data:/var/lib/grafana
+          - /home/ansible/prometheus/:/etc/grafana/provisioning/datasources/
+
+- name: Start node_exporter
+  hosts: My
+  become: yes
+  vars:
+    userId: exporter
+    groupId: exporter
+    version: 2.41.0
+    docker_net: 'grafana_prometheus'
+  gather_facts: no
+  tasks:
+    - name: Run node exporter updated docker image
+      docker_container:
+        name: Exporter
+        image: prom/node-exporter
+        published_ports: 9100:9100
+        state: absent
+        #keep_volumes: no 
+        volumes:
+          - /home/ansible/prometheus/:/etc/node_exporter
