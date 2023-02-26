@@ -48,16 +48,6 @@
 #        src: /home/ansible/Monitoring/export/datasources/
 #        dest: /home/ansible/prometheus/
 
-#    - name: config file
-#      template:
-#        src: /home/ansible/Monitoring/export/alertmanager.yml
-#        dest: /home/ansible/prometheus/
-
-#    - name: config file
-#      copy:
-#        src: /home/ansible/Monitoring/export/rules
-#        dest: /home/ansible/prometheus/
-
     - name: Run prometheus updated docker image
       docker_container:
         pull: yes
@@ -74,23 +64,6 @@
           - '--web.config.file=/etc/prometheus/web_prom.yml'
         restart: yes
         
-#    - name: Run prometheus alert-manager docker image
-#      docker_container:
-#        pull: yes
-#        name: Prometheus
-#        image: prom/alertmanager:latest
-#        published_ports: 9093:9093
-#        #network_mode: host
-#        state: started
-#        volumes:
-#          - /home/ansible/prometheus/:/etc/alertmanager/
-#          - "./alertmanager:/config"
-#          - alertmanager-data:/data
-#        command:
-#          - '--web.config.file=/etc/prometheus/web_prom.yml'
-#          - '--config.file=/etc/alertmanager/alertmanager.yml'
-
-
     - name: Run grafana updated docker image
       docker_container:
         pull: yes
