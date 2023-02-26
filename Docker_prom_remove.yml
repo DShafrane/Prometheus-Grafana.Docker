@@ -14,29 +14,7 @@
           - prometheus-data:/prometheus
         command:  
           - '--config.file=/etc/prometheus/prometheus.yml'
-          - '--web.config.file=/etc/prometheus/web_prom.yml'
-        
-#    - name: Run prometheus alert-manager docker image
-#      docker_container:
-#        pull: yes
-#        name: Prometheus
-#        image: prom/alertmanager:latest
-#        published_ports: 9093:9093
-#        #network_mode: host
-#        state: started
-#        volumes:
-#          - /home/ansible/prometheus/:/etc/alertmanager/
-#          - "./alertmanager:/config"
-#          - alertmanager-data:/data
-#        command:
-#          - '--web.config.file=/etc/prometheus/web_prom.yml'
-#          - '--config.file=/etc/alertmanager/alertmanager.yml'
-#          #networks:
-#          #- name: "{{ docker_net }}"
-#          #  aliases: prometheus
-#          #  links: grafana
-#          #restart: yes
-
+          - '--web.config.file=/etc/prometheus/web_prom.yml'    
 
     - name: Remove grafana docker container
       docker_container:
