@@ -12,8 +12,3 @@
         - "9090"
         - "9100"
         - "3000"
-    - name:
-      service:
-        name: ufw
-        state: restarted
-
