@@ -6,7 +6,7 @@
   tasks:
     - name: Create mount directory
       file:
-        path: {{ path }}
+        path: "{{ path }}"
         state: directory
         owner: ansible
         group: wheel
@@ -20,7 +20,7 @@
   tasks:
     - name: Create mount directory
       file:
-        path: {{ path }}
+        path: "{{ path }}"
         state: directory
         owner: ansible
         group: ansible
@@ -32,16 +32,15 @@
   vars_files:
     - variables.yml
   tasks:
-
     - name: Copy config file
       template:
         src: prometheus.conf.j2
-        dest: {{ path }}/prometheus.yml
+        dest: "{{ path }}/prometheus.yml"
 
     - name: Copy web config file
       template:
         src: /home/ansible/Monitoring/exporter_tls/web_prom.yml
-        dest: {{ path }}/web_prom.yml
+        dest: "{{ path }}/web_prom.yml"
 
 #    - name: config file
 #      copy:
