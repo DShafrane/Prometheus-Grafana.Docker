@@ -39,23 +39,23 @@
 
     - name: Copy web config file
       template:
-        src: /home/ansible/Monitoring/exporter_tls/web_prom.yml
+        src: /home/ansible/Monitoring/export/web_prom.yml
         dest: "{{ path }}/web_prom.yml"
 
 #    - name: config file
 #      copy:
 #        directory_mode: true
-#        src: /home/ansible/Monitoring/exporter_tls/datasources/
+#        src: /home/ansible/Monitoring/export/datasources/
 #        dest: /home/ansible/prometheus/
 
 #    - name: config file
 #      template:
-#        src: /home/ansible/Monitoring/exporter_tls/alertmanager.yml
+#        src: /home/ansible/Monitoring/export/alertmanager.yml
 #        dest: /home/ansible/prometheus/
 
 #    - name: config file
 #      copy:
-#        src: /home/ansible/Monitoring/exporter_tls/rules
+#        src: /home/ansible/Monitoring/export/rules
 #        dest: /home/ansible/prometheus/
 
     - name: Run prometheus updated docker image
