@@ -1,5 +1,5 @@
-- name: Statistics CPU Memory Disk Utilization
-  hosts: Sui
+- name: Open ports on controller for Prometheus and Grafana
+  hosts: My1
   become: yes
   tasks:
     - name: Set ufw rules
@@ -9,5 +9,17 @@
         proto: tcp
       with_items:
         - "9090"
-        - "9100"
         - "3000"
+
+
+- name: Open port on managed nodes for Node exporter
+  hosts: My
+  become: yes
+  tasks:
+    - name: Set ufw rules
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      with_items:
+        - "9100"
