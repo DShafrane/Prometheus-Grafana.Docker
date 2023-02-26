@@ -89,11 +89,6 @@
 #        command:
 #          - '--web.config.file=/etc/prometheus/web_prom.yml'
 #          - '--config.file=/etc/alertmanager/alertmanager.yml'
-#          #networks:
-#          #- name: "{{ docker_net }}"
-#          #  aliases: prometheus
-#          #  links: grafana
-#          #restart: yes
 
 
     - name: Run grafana updated docker image
