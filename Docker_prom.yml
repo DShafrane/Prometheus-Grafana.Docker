@@ -1,7 +1,7 @@
-- name:  
+- name: localhost templates directory creation 
   hosts: localhost
   become: yes
-  gather_facts: yes
+  gather_facts: no
   vars:
     host_list: "{{ groups['all'] }}"
     path: /home/ansible/prometheus
@@ -14,39 +14,13 @@
         group: wheel
         mode: 0775
 
-    - name: Private key creation
-      openssl_privatekey:
-        path: {{ path }}/node_exporter.key
-        size: 2048
-        owner: ansible
-        group: wheel
-        mode: 0774
-
-    - name: csr file creation
-      openssl_csr:
-        path: {{ path }}/node_exporter.csr
-        privatekey_path: {{ path }}/node_exporter.key
-        owner: ansible
-        group: wheel
-        mode: 0774
-
-    - name: Create SSL certificate for Node Exporter
-      openssl_certificate:
-        path: {{ path }}/node_exporter.crt
-        privatekey_path: {{ path }}/node_exporter.key
-        csr_path: {{ path }}/node_exporter.csr
-        provider: selfsigned
-        owner: ansible
-        group: wheel
-        mode: 0774
-
-
-- name: Copy keys and certs
+- name: Remote machines templates directory creation
   hosts: My
   become: yes
   gather_facts: no
+  vars:
+    path: /home/ansible/prometheus
   tasks:
-
     - name: Create mount directory
       file:
         path: {{ path }}
@@ -55,31 +29,12 @@
         group: ansible
         mode: 0775
 
-    - name: Copy cert file
-      template:
-        src: {{ path }}/node_exporter.crt
-        dest: {{ path }}/node_exporter.crt
-
-    - name: Copy key file
-      template:
-        src: {{ path }}/node_exporter.key
-        dest: {{ path }}/node_exporter.key 
-
-    - name: Copy web config file
-      template:
-        src: /home/ansible/Monitoring/exporter_tls/web.yml
-        dest: /home/ansible/prometheus/web.yml
-
-
 - name: Docker containers setup
   hosts: My1
   become: yes
   vars:
-    userId: exporter
-    groupId: exporter
-    version: 2.41.0
-    docker_net: 'grafana_prometheus'
-  gather_facts: yes
+    path: /home/ansible/prometheus
+  gather_facts: no
   tasks:
 
     - name: Copy config file
@@ -122,10 +77,6 @@
         command:  
           - '--config.file=/etc/prometheus/prometheus.yml'
           - '--web.config.file=/etc/prometheus/web_prom.yml'
-          #networks:
-          #- name: "{{ docker_net }}"
-          #  aliases: prometheus
-          #  links: grafana
         restart: yes
         
 #    - name: Run prometheus alert-manager docker image
@@ -160,20 +111,13 @@
         volumes: 
           - grafana-data:/var/lib/grafana
         #  - /home/ansible/prometheus/datasources/:/etc/grafana/provisioning/datasources/
-        #networks:
-        # - name: "{{ docker_net }}"
-        #   aliases: grafana
-        #   links: prometheus
         restart: yes
 
 - name: Start node_exporter on managed nodes
   hosts: My
   become: yes
   vars:
-    userId: exporter
-    groupId: exporter
-    version: 2.41.0
-    docker_net: 'grafana_prometheus'
+    path: /home/ansible/prometheus
   gather_facts: no
   tasks:
 
@@ -188,8 +132,3 @@
         volumes:
           - /home/ansible/prometheus/:/etc/node_exporter
         command: "--web.config.file=/etc/node_exporter/web.yml"
-
-        #        networks:
-        # - name: "{{ docker_net }}"
-        #    aliases: Exporter
-        #   links: prometheus
