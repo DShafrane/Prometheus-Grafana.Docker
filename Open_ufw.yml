@@ -1,5 +1,5 @@
 - name: Statistics CPU Memory Disk Utilization
-  hosts: all
+  hosts: Sui
   become: yes
   gather_facts: no
   tasks:
