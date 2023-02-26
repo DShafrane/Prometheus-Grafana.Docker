@@ -1,7 +1,6 @@
 - name: localhost templates directory creation 
   hosts: localhost
   become: yes
-  gather_facts: no
   vars_files: 
     - variables.yml
   tasks:
@@ -16,7 +15,6 @@
 - name: Remote machines templates directory creation
   hosts: My
   become: yes
-  gather_facts: no
   vars_files:
     - variables.yml
   tasks:
@@ -33,7 +31,6 @@
   become: yes
   vars_files:
     - variables.yml
-  gather_facts: no
   tasks:
 
     - name: Copy config file
@@ -117,7 +114,6 @@
   become: yes
   vars_files:
     - variables.yml
-  gather_facts: no
   tasks:
 
     - name: Run node exporter updated docker image
