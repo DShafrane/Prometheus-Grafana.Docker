@@ -1,4 +1,4 @@
-- name: 
+- name:  
   hosts: localhost
   become: yes
   gather_facts: yes
@@ -8,7 +8,7 @@
   tasks:
     - name: Create mount directory
       file:
-        path: /home/ansible/prometheus
+        path: {{ path }}
         state: directory
         owner: ansible
         group: wheel
@@ -16,7 +16,7 @@
 
     - name: Private key creation
       openssl_privatekey:
-        path: /home/ansible/prometheus/node_exporter.key
+        path: {{ path }}/node_exporter.key
         size: 2048
         owner: ansible
         group: wheel
@@ -24,17 +24,17 @@
 
     - name: csr file creation
       openssl_csr:
-        path: /home/ansible/prometheus/node_exporter.csr
-        privatekey_path: /home/ansible/prometheus/node_exporter.key
+        path: {{ path }}/node_exporter.csr
+        privatekey_path: {{ path }}/node_exporter.key
         owner: ansible
         group: wheel
         mode: 0774
 
     - name: Create SSL certificate for Node Exporter
       openssl_certificate:
-        path: /home/ansible/prometheus/node_exporter.crt
-        privatekey_path: /home/ansible/prometheus/node_exporter.key
-        csr_path: /home/ansible/prometheus/node_exporter.csr
+        path: {{ path }}/node_exporter.crt
+        privatekey_path: {{ path }}/node_exporter.key
+        csr_path: {{ path }}/node_exporter.csr
         provider: selfsigned
         owner: ansible
         group: wheel
@@ -49,7 +49,7 @@
 
     - name: Create mount directory
       file:
-        path: /home/ansible/prometheus
+        path: {{ path }}
         state: directory
         owner: ansible
         group: ansible
@@ -57,13 +57,13 @@
 
     - name: Copy cert file
       template:
-        src: /home/ansible/prometheus/node_exporter.crt
-        dest: /home/ansible/prometheus/node_exporter.crt
+        src: {{ path }}/node_exporter.crt
+        dest: {{ path }}/node_exporter.crt
 
     - name: Copy key file
       template:
-        src: /home/ansible/prometheus/node_exporter.key
-        dest: /home/ansible/prometheus/
+        src: {{ path }}/node_exporter.key
+        dest: {{ path }}/node_exporter.key 
 
     - name: Copy web config file
       template:
@@ -85,12 +85,12 @@
     - name: Copy config file
       template:
         src: prometheus.conf.j2
-        dest: /home/ansible/prometheus/prometheus.yml
+        dest: {{ path }}/prometheus.yml
 
     - name: Copy web config file
       template:
         src: /home/ansible/Monitoring/exporter_tls/web_prom.yml
-        dest: /home/ansible/prometheus/web_prom.yml
+        dest: {{ path }}/web_prom.yml
 
 #    - name: config file
 #      copy:
