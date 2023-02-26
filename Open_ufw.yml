@@ -1,7 +1,6 @@
 - name: Statistics CPU Memory Disk Utilization
   hosts: Sui
   become: yes
-  gather_facts: no
   tasks:
     - name: Set ufw rules
       ufw:
