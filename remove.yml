@@ -1,0 +1,42 @@
+- name: Remove all containers
+  hosts: My1
+  become: yes
+  tasks:
+    - name: Remove prometheus docker container
+      docker_container:
+        name: Prometheus
+        image: prom/prometheus:latest
+        network_mode: host
+        state: absent
+        #keep_volumes: no
+        volumes: 
+          - /home/ansible/prometheus/:/etc/prometheus/
+          - prometheus-data:/prometheus
+        command:  
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--web.config.file=/etc/prometheus/web_prom.yml'    
+
+    - name: Remove grafana docker container
+      docker_container:
+        name: Grafana
+        image: grafana/grafana-oss:latest
+        published_ports: 3000:3000
+        state: absent
+        #keep_volumes: no
+        volumes: 
+          - grafana-data:/var/lib/grafana
+          - /home/ansible/prometheus/:/etc/grafana/provisioning/datasources/
+
+- name: Remove all node exporters
+  hosts: My
+  become: yes
+  tasks:
+    - name: Remove node exporter docker container
+      docker_container:
+        name: Exporter
+        image: prom/node-exporter
+        published_ports: 9100:9100
+        state: absent
+        #keep_volumes: no 
+        volumes:
+          - /home/ansible/prometheus/:/etc/node_exporter
